@@ -78,6 +78,15 @@ input.f{border-width:3px;box-shadow:inset 0 3px 6px rgba(58,29,8,.18)}
 .disp{text-shadow:0 4px 0 var(--brown),0 8px 14px rgba(0,0,0,.25)}
 #hint{box-shadow:0 4px 12px rgba(0,0,0,.2)}
 #title{background:linear-gradient(180deg,rgba(255,255,255,0) 0%,rgba(255,255,255,0) 50%,rgba(70,160,40,.55) 100%)}
+
+.seg{display:flex;gap:6px;margin-top:6px;background:#e9c97e;border:3px solid var(--brown2);border-radius:18px;padding:4px;box-shadow:inset 0 3px 6px rgba(58,29,8,.25)}
+.seg button{flex:1;min-height:44px;border:0;border-radius:14px;background:transparent;font:800 17px 'Baloo 2','Fredoka',sans-serif;color:var(--brown2);position:relative;overflow:hidden}
+.seg button.on{background:linear-gradient(180deg,#fff27a,#ffd34d 45%,#f3a90c);color:var(--brown);box-shadow:0 3px 0 var(--brown),inset 0 -3px 6px rgba(201,120,0,.35)}
+.seg button.on::after{content:'';position:absolute;left:8%;right:8%;top:2px;height:42%;border-radius:10px;background:linear-gradient(180deg,rgba(255,255,255,.85),rgba(255,255,255,.1))}
+#skillTag{position:absolute;bottom:calc(env(safe-area-inset-bottom) + 72px);left:50%;transform:translateX(-50%);display:flex;gap:6px}
+#skillTag span{padding:4px 12px;border-radius:999px;border:3px solid var(--brown2);background:rgba(255,248,208,.9);font-weight:800;font-size:14px;color:var(--brown2);opacity:.55}
+#skillTag span.on{opacity:1;background:linear-gradient(180deg,#fff27a,#ffd34d 50%,#f3a90c);color:var(--brown);box-shadow:0 3px 0 var(--brown)}
+#skillTag span.done{opacity:1;background:#bdf0a0}
 </style><script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script><script>window.FIREBASE_CONFIG = {
   apiKey: "AIzaSyB421w1keWwXNrh-Bbn-UEH5HjKmM0ow3M",
   authDomain: "debbies-wheel-ff73c.firebaseapp.com",
@@ -93,6 +102,7 @@ input.f{border-width:3px;box-shadow:inset 0 3px 6px rgba(58,29,8,.18)}
  <div class="panel">
   <ul class="perks"><li>🎯 <b>Real bag physics</b> — slide it in for 3</li><li>📱 <b>Two phones</b>, one board, live throws</li><li>🏆 Classic cancellation scoring to <b>21</b></li></ul>
   <div class="lbl">Your name</div><input id="meName" class="f" maxlength="12" placeholder="Bill" autocomplete="off">
+  <div class="lbl">How you throw</div><div class="seg modeSeg"><button data-m="swipe">👆 Swipe</button><button data-m="skill">🎯 Skill Stop</button></div>
   <button id="bCreate" class="btn">CREATE ROOM</button>
   <div class="row"><input id="joinCode" class="f code" maxlength="4" placeholder="CODE" autocomplete="off"><button id="bJoin" class="btn alt">JOIN</button></div>
   <button id="bPP" class="btn alt">PASS &amp; PLAY</button>
@@ -105,6 +115,7 @@ input.f{border-width:3px;box-shadow:inset 0 3px 6px rgba(58,29,8,.18)}
   <div id="lCode" class="bigcode disp">----</div>
   <div class="sub">Other phone: tap JOIN and enter the code</div>
   <div id="lPlayers" class="chips"></div>
+  <div class="lbl">How you throw</div><div class="seg modeSeg"><button data-m="swipe">👆 Swipe</button><button data-m="skill">🎯 Skill Stop</button></div>
   <button id="bLStart" class="btn" disabled>WAITING…</button>
   <button id="bLLeave" class="btn alt">LEAVE</button>
  </div>
@@ -115,7 +126,7 @@ input.f{border-width:3px;box-shadow:inset 0 3px 6px rgba(58,29,8,.18)}
  <div id="turn" class="disp"></div>
  <div id="toast" class="disp"></div>
  <div id="pow"><i></i></div>
- <div id="hint">👆 Swipe up to toss</div>
+ <div id="skillTag" class="hidden"></div><div id="hint">👆 Swipe up to toss</div>
  <div id="hudBtns"><button id="bMute" class="mini">🔊</button><button id="bQuit" class="mini">✕</button></div>
 </div>
 <div id="ovRound" class="ov hidden"><div class="panel"><h2 id="rTtl" class="disp">ROUND 1</h2><table class="rt" id="rTbl"></table><div id="rRes" class="big"></div><button id="bNext" class="btn">NEXT ROUND</button></div></div>
@@ -2212,7 +2223,7 @@ function ui(){if(!S)return;
  const r=roundPts(S.bags);$('rnd').textContent='ROUND '+S.round+' · this round '+r[0]+' – '+r[1];
  const nm=S.players[S.thrower].name,mine=myTurn()||(S.phase==='aim'&&MODE==='online'&&S.thrower===ME);
  $('turn').textContent=S.phase!=='aim'?'':MODE==='pp'?nm.toUpperCase()+"'S TOSS":mine?'YOUR TOSS':nm.toUpperCase()+' IS UP';
- $('hint').classList.toggle('hidden',!(S.phase==='aim'&&!anim&&(MODE==='pp'||S.thrower===ME)));
+ $('hint').classList.toggle('hidden',!(S.phase==='aim'&&!anim&&(MODE==='pp'||S.thrower===ME)));if(THROWMODE!=='skill')$('hint').textContent='👆 Swipe up to toss';
  CHARS.forEach((c,i)=>c.turn=S.phase==='aim'&&S.thrower===i);handBag.material=bagMats[S.thrower];handBag.visible=S.phase==='aim'&&!anim;
  $('ovRound').classList.toggle('hidden',S.phase!=='roundover');$('ovEnd').classList.toggle('hidden',S.phase!=='over');
  if(S.phase==='roundover'||S.phase==='over'){const rp=S.rp;
@@ -2227,9 +2238,54 @@ $('bHome').onclick=$('bQuit').onclick=()=>{sfx('tap');leave();};
 function leave(){if(NET&&NET.off)NET.off.forEach(f=>f());NET=null;S=null;MODE=null;anim=null;showBags([]);$('hud').classList.add('hidden');$('ovRound').classList.add('hidden');$('ovEnd').classList.add('hidden');$('lobby').classList.add('hidden');$('title').classList.remove('hidden');titleMode=true;resize();history.replaceState(null,'',location.pathname+(Q.get('mockdb')?'?mockdb=1':''))}
 function muteLbl(){$('bMute').textContent=MUTE?'🔇':'🔊'}muteLbl();$('bMute').onclick=()=>{MUTE=!MUTE;sset('chMute',MUTE?'1':'0');muteLbl();sfx('tap')};
 function enterGame(){titleMode=false;resize();$('title').classList.add('hidden');$('lobby').classList.add('hidden');$('hud').classList.remove('hidden');camT.pos.copy(CAM_HOME.pos);camT.look.copy(CAM_HOME.look);showBags(S.bags);ui()}
+
+// ---------------- Skill Stop (2-stage: aim sweep, then power grow/shrink) ----------------
+let THROWMODE=sget('chThrow')==='skill'?'skill':'swipe';
+function paintSeg(){document.querySelectorAll('.modeSeg button').forEach(b=>b.classList.toggle('on',b.dataset.m===THROWMODE))}
+document.querySelectorAll('.modeSeg button').forEach(b=>b.onclick=()=>{THROWMODE=b.dataset.m;sset('chThrow',THROWMODE);paintSeg();sfx('tap')});paintSeg();
+const SK={stage:0,t:0,yaw:0,v:0,lockT:0};
+const SK_YAW=.1,SK_VMIN=7.6,SK_VMAX=10.2,SK_AIM_P=1.7,SK_POW_P=1.35;
+// landing point for a (v,yaw) with no curve: flight-only integration matching simulate()
+function landPt(v,yaw){const hv=v*Math.cos(PITCH);let x=0,y=1,z=-.3,vx=hv*Math.sin(yaw),vy=v*Math.sin(PITCH),vz=-hv*Math.cos(yaw);
+ for(let i=0;i<600;i++){vy-=G*DT;const sp=Math.hypot(vx,vy,vz),k=.012*sp*DT;vx-=vx*k;vy-=vy*k;vz-=vz*k;x+=vx*DT;y+=vy*DT;z+=vz*DT;const L=onBoardLocal(x,y,z);if(L.inside&&y<=boardY(L.s)+.03)return [x,y,z];if(y<=.03)return [x,.03,z]}return [x,y,z]}
+// sweet spot: the power that drops the bag just short of the hole so it slides in (straight line)
+const SWEET_V=(()=>{let best=8.8,bd=9;for(let v=8.3;v<=9.4;v+=.01){const p=landPt(v,0),s=(ZF-p[2])/CT,d=Math.abs(s-(HOLE_S-.22));if(d<bd){bd=d;best=v}}return best})();
+const lineG=new THREE.Group();lineG.renderOrder=10;scene.add(lineG);lineG.visible=false;
+const lineMat=new THREE.MeshPhysicalMaterial({color:'#ffd34d',emissive:'#ffb400',emissiveIntensity:.55,roughness:.2,clearcoat:1,clearcoatRoughness:.05,depthTest:false,transparent:true,opacity:.95});
+const lineEdge=new THREE.MeshBasicMaterial({color:'#3a1d08',depthTest:false,transparent:true,opacity:.9});
+const shaftG=rbox(.07,.02,1,.009,2);shaftG.translate(0,0,-.5);
+const shE=new THREE.Mesh(shaftG,lineEdge);shE.scale.set(1.6,.6,1);shE.renderOrder=10;lineG.add(shE);
+const sh=new THREE.Mesh(shaftG,lineMat);sh.renderOrder=11;lineG.add(sh);
+const headG=new THREE.ConeGeometry(.12,.3,24);headG.rotateX(-Math.PI/2);
+const hdE=new THREE.Mesh(headG,lineEdge);hdE.scale.setScalar(1.3);hdE.renderOrder=10;lineG.add(hdE);const hd=new THREE.Mesh(headG,lineMat);hd.renderOrder=11;lineG.add(hd);
+// landing ring at the tip + sweet-spot ring over the hole
+const ringM=new THREE.MeshPhysicalMaterial({color:'#ffffff',emissive:'#ffe066',emissiveIntensity:.6,roughness:.15,clearcoat:1,depthTest:false,transparent:true});
+const tipRing=new THREE.Mesh(new THREE.TorusGeometry(.11,.018,10,36),ringM);tipRing.rotation.x=-Math.PI/2;tipRing.renderOrder=12;scene.add(tipRing);tipRing.visible=false;
+const sweetM=new THREE.MeshPhysicalMaterial({color:'#7dff6a',emissive:'#3fdc2a',emissiveIntensity:.9,roughness:.15,clearcoat:1,transparent:true,opacity:.9,depthTest:false});
+const sweet=new THREE.Mesh(new THREE.TorusGeometry(HOLE_R*1.7,.016,10,40),sweetM);sweet.position.set(0,boardY(HOLE_S)+.02,boardZ(HOLE_S));sweet.rotation.x=-Math.PI/2+TH;sweet.renderOrder=12;scene.add(sweet);sweet.visible=false;
+const LINE_Y=.06,LINE_Z0=-.7;
+function skillActive(){return THROWMODE==='skill'&&myTurn()}
+function skillUpdate(dt){
+ const on=skillActive();if(!on){if(SK.stage){SK.stage=0}lineG.visible=tipRing.visible=sweet.visible=false;$('skillTag').classList.add('hidden');return}
+ if(!SK.stage){SK.stage=1;SK.t=0}
+ SK.t+=dt;
+ if(SK.stage===1){SK.yaw=Math.sin(SK.t*2*Math.PI/SK_AIM_P)*SK_YAW;SK.v=SWEET_V}
+ else if(SK.stage===2){SK.v=SK_VMIN+(SK_VMAX-SK_VMIN)*(.5-.5*Math.cos(SK.t*2*Math.PI/SK_POW_P))}
+ const p=landPt(SK.v,SK.yaw),len=Math.hypot(p[0],p[2]-LINE_Z0)-.15;
+ lineG.visible=true;lineG.position.set(0,LINE_Y,LINE_Z0);lineG.rotation.y=-SK.yaw;
+ const L=SK.stage===1?len:len;sh.scale.z=shE.scale.z=Math.max(.3,L);hd.position.z=hdE.position.z=-Math.max(.3,L)-.12;
+ tipRing.visible=SK.stage===2;tipRing.position.set(p[0],p[1]+.01,p[2]);const pul=1+.12*Math.sin(tAll*10);tipRing.scale.setScalar(pul);
+ sweet.visible=true;sweet.scale.setScalar(1+.08*Math.sin(tAll*6));
+ const good=SK.stage===1?Math.abs(SK.yaw)<.012:Math.abs(SK.v-SWEET_V)<.08&&Math.abs(SK.yaw)<.03;
+ lineMat.color.set(good?'#7dff6a':'#ffd34d');lineMat.emissive.set(good?'#2fd01a':'#ffb400');
+ const tg=$('skillTag');tg.classList.remove('hidden');tg.innerHTML='<span class="'+(SK.stage===1?'on':'done')+'">1 · AIM</span><span class="'+(SK.stage===2?'on':'')+'">2 · POWER</span>';
+ $('hint').textContent=SK.stage===1?'👆 Tap to lock aim':'👆 Tap to lock power & throw'}
+function skillTap(){if(!skillActive()||!SK.stage)return;sfx('tap');
+ if(SK.stage===1){SK.stage=2;SK.t=0;return}
+ const params={v:+SK.v.toFixed(3),yaw:+SK.yaw.toFixed(4),curve:0,spin:6};SK.stage=0;lineG.visible=tipRing.visible=sweet.visible=false;$('skillTag').classList.add('hidden');SK.last=params;doThrow(params)}
 // ---------------- swipe input ----------------
 let sw=null;
-canvas.addEventListener('pointerdown',e=>{audioInit();if(!myTurn())return;sw={pts:[[e.clientX,e.clientY,performance.now()]]};$('pow').classList.add('show')});
+canvas.addEventListener('pointerdown',e=>{audioInit();if(!myTurn())return;if(THROWMODE==='skill'){skillTap();return}sw={pts:[[e.clientX,e.clientY,performance.now()]]};$('pow').classList.add('show')});
 addEventListener('pointermove',e=>{if(!sw)return;sw.pts.push([e.clientX,e.clientY,performance.now()]);const p=swipeParams(false);if(p)$('pow').firstChild.style.height=Math.min(100,(p.v-4)/9*100)+'%';const a=sw.pts[0],b=sw.pts[sw.pts.length-1];handBag.position.x=.22+(b[0]-a[0])/innerWidth*.4;handBag.position.y=1.22+Math.max(-.2,Math.min(.15,(a[1]-b[1])/innerHeight*.6))});
 addEventListener('pointerup',e=>{if(!sw)return;sw.pts.push([e.clientX,e.clientY,performance.now()]);const p=swipeParams(true);sw=null;$('pow').classList.remove('show');handBag.position.set(.22,1.22,-.7);if(p)doThrow(p)});
 function swipeParams(fin){const P=sw.pts,a=P[0],z=P[P.length-1];const dy=a[1]-z[1],dx=z[0]-a[0];if(dy<40)return null;
@@ -2275,13 +2331,13 @@ function frame(now){requestAnimationFrame(frame);let dt=(now-last)/1000;last=now
   if(i>=fr.length-1&&anim.t*60>fr.length+20)finishAnim()}
  const k=ease(3.2,dt);CAM.pos.lerp(camT.pos,k);CAM.look.lerp(camT.look,k);camera.position.copy(CAM.pos);camera.lookAt(CAM.look);
  if(handBag.visible)handBag.rotation.y=Math.sin(tAll*2)*.2;
- animChars(dt,tAll);
+ animChars(dt,tAll);skillUpdate(dt);
  if(QUAL[qLevel].bl)composer.render(dt);else renderer.render(scene,camera)}
 const DEMO=[{p:0,st:'board',x:-.08,s:.55,r:.4},{p:1,st:'board',x:.12,s:.72,r:1.2},{p:0,st:'board',x:-.12,s:.3,r:2.5},{p:1,st:'ground',x:-.5,y:.03,z:-7.2,r:.3}];
 showBags(DEMO);CAM.pos.copy(CAM_TITLE.pos);camT.pos.copy(CAM_TITLE.pos);
 requestAnimationFrame(frame);
 if(Q.get('nosplash')==='1'){/* no splash in this game; flag accepted for test parity */}
 // test hooks
-window.CH={dbg:()=>({cam:camera.position.toArray(),look:CAM.look.toArray(),fov:camera.fov,asp:camera.aspect,title:titleMode,w:renderer.domElement.width,h:renderer.domElement.height,hidden:document.hidden,vis:document.visibilityState}),get qName(){return JSON.stringify(QUAL[qLevel])},get S(){return S},get ME(){return ME},get anim(){return !!anim},throwWith:p=>doThrow(p),simulate,roundPts,setQuality,get q(){return qLevel},myTurn};
+window.CH={get skill(){return {stage:SK.stage,yaw:SK.yaw,v:SK.v,last:SK.last,sweet:SWEET_V,mode:THROWMODE}},skillTap:()=>skillTap(),landPt,dbg:()=>({cam:camera.position.toArray(),look:CAM.look.toArray(),fov:camera.fov,asp:camera.aspect,title:titleMode,w:renderer.domElement.width,h:renderer.domElement.height,hidden:document.hidden,vis:document.visibilityState}),get qName(){return JSON.stringify(QUAL[qLevel])},get S(){return S},get ME(){return ME},get anim(){return !!anim},throwWith:p=>doThrow(p),simulate,roundPts,setQuality,get q(){return qLevel},myTurn};
 })();
 </script></body></html>
