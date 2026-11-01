@@ -2174,7 +2174,7 @@ function rbox(w,h,d,r,seg){seg=seg||4;const g=new THREE.BoxGeometry(w,h,d,seg*2,
  g.computeVertexNormals();return g}
 // soft contact shadow (ambient-occlusion feel)
 const aoTex=(()=>{const c=document.createElement('canvas');c.width=c.height=128;const g=c.getContext('2d'),r=g.createRadialGradient(64,64,4,64,64,64);r.addColorStop(0,'rgba(20,40,10,.55)');r.addColorStop(.6,'rgba(20,40,10,.22)');r.addColorStop(1,'rgba(20,40,10,0)');g.fillStyle=r;g.fillRect(0,0,128,128);return new THREE.CanvasTexture(c)})();
-function blob(x,z,w,d,o){const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),new THREE.MeshBasicMaterial({map:aoTex,transparent:true,depthWrite:false,opacity:o||1}));m.rotation.x=-Math.PI/2;m.position.set(x,.006,z);scene.add(m);return m}
+function blob(x,z,w,d,o){const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),new THREE.MeshBasicMaterial({map:aoTex,transparent:true,depthWrite:false,opacity:o||1,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-4}));m.rotation.x=-Math.PI/2;m.position.set(x,.006,z);scene.add(m);return m}
 scene.add(new THREE.HemisphereLight('#bfe2ff','#3f7a1f',.55));
 const sun=new THREE.DirectionalLight('#fff0c8',2.6);sun.position.set(-5,10,2);sun.target.position.set(0,0,-7);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);
 Object.assign(sun.shadow.camera,{left:-4,right:4,top:5,bottom:-5,near:1,far:30});sun.shadow.radius=6;sun.shadow.blurSamples=16;sun.shadow.bias=-.0004;sun.shadow.normalBias=.02;scene.add(sun,sun.target);
@@ -2243,19 +2243,19 @@ const YARD_OBJ=scene.children.slice(_n0);_n0=scene.children.length;
   for(let i=0;i<60;i++){g.fillStyle='rgba(70,80,100,.16)';g.beginPath();g.ellipse(w*.45+Math.random()*w*.6,h*.55+Math.random()*h*.45,10+Math.random()*40,5+Math.random()*14,Math.random(),0,7);g.fill()}
   // oil-ish darker band near garage
   const og=g.createLinearGradient(0,0,0,90);og.addColorStop(0,'rgba(90,85,78,.35)');og.addColorStop(1,'rgba(90,85,78,0)');g.fillStyle=og;g.fillRect(0,0,w,90)});
- const dm=new THREE.Mesh(new THREE.PlaneGeometry(DW,DL),gloss('#ffffff',{map:drive,roughness:.55,clearcoat:.35,clearcoatRoughness:.3,envMapIntensity:.4}));dm.rotation.x=-Math.PI/2;dm.position.set(0,.004,1-DL/2);dm.receiveShadow=true;scene.add(dm);
+ const dm=new THREE.Mesh(new THREE.PlaneGeometry(DW,DL),gloss('#ffffff',{map:drive,roughness:.55,clearcoat:.35,clearcoatRoughness:.3,envMapIntensity:.4,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-2}));dm.rotation.x=-Math.PI/2;dm.position.set(0,.004,1-DL/2);dm.receiveShadow=true;scene.add(dm);
  // apron curb edges
  [-1,1].forEach(s=>{const e=new THREE.Mesh(rbox(.08,.03,DL,.012,2),gloss('#cfcabf',{roughness:.6,clearcoat:.3}));e.position.set(s*(DW/2+.02),.012,1-DL/2);e.receiveShadow=true;scene.add(e)});
  // sidewalk + street (in front, behind the thrower)
  const side=ctex(512,64,(g,w,h)=>{g.fillStyle='#dedad2';g.fillRect(0,0,w,h);speck(g,w,h,3000,'rgba(150,145,135,.35)','rgba(255,255,255,.5)');g.strokeStyle='rgba(95,90,82,.6)';g.lineWidth=3;for(let x=0;x<w;x+=32){g.beginPath();g.moveTo(x,0);g.lineTo(x,h);g.stroke()}},1,1);
- const sw=new THREE.Mesh(new THREE.PlaneGeometry(40,1.5),gloss('#fff',{map:side,roughness:.6,clearcoat:.3}));sw.rotation.x=-Math.PI/2;sw.position.set(0,.008,1.75);sw.receiveShadow=true;scene.add(sw);
+ const sw=new THREE.Mesh(new THREE.PlaneGeometry(40,1.5),gloss('#fff',{map:side,roughness:.6,clearcoat:.3,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-2}));sw.rotation.x=-Math.PI/2;sw.position.set(0,.008,1.75);sw.receiveShadow=true;scene.add(sw);
  const asph=ctex(256,256,(g,w,h)=>{g.fillStyle='#6d6e72';g.fillRect(0,0,w,h);speck(g,w,h,9000,'rgba(40,40,45,.5)','rgba(170,170,175,.45)')},20,3);
- const st=new THREE.Mesh(new THREE.PlaneGeometry(80,12),gloss('#fff',{map:asph,roughness:.8,clearcoat:.15}));st.rotation.x=-Math.PI/2;st.position.set(0,.002,8.6);st.receiveShadow=true;scene.add(st);
+ const st=new THREE.Mesh(new THREE.PlaneGeometry(80,12),gloss('#fff',{map:asph,roughness:.8,clearcoat:.15,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1}));st.rotation.x=-Math.PI/2;st.position.set(0,.002,8.6);st.receiveShadow=true;scene.add(st);
  const curb=new THREE.Mesh(rbox(40,.1,.18,.04,2),gloss('#d5d0c6',{roughness:.6,clearcoat:.3}));curb.position.set(0,.03,2.6);scene.add(curb);
  // dormant winter lawn (replaces the green grass colours)
  DRIVE_GND=ctex(512,512,(g,w,h)=>{g.fillStyle='#8f9a4e';g.fillRect(0,0,w,h);for(let i=0;i<9000;i++){g.fillStyle=Math.random()<.5?'rgba(190,170,100,.35)':'rgba(90,110,40,.3)';g.fillRect(Math.random()*w,Math.random()*h,2,4+Math.random()*4)}},12,12);
  // mulch bed along house front-left
- const mul=new THREE.Mesh(new THREE.PlaneGeometry(9,3.4),matte('#6a4a30'));mul.rotation.x=-Math.PI/2;mul.position.set(-8.2,.006,-13.1);mul.receiveShadow=true;scene.add(mul);
+ const mul=new THREE.Mesh(new THREE.PlaneGeometry(9,3.4),matte('#6a4a30',{polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-2}));mul.rotation.x=-Math.PI/2;mul.position.set(-8.2,.0035,-13.1);mul.receiveShadow=true;scene.add(mul);
  // snow piles (glossy toon white with blue shade)
  const snowM=gloss('#ffffff',{roughness:.35,clearcoat:.6,envMapIntensity:.8,emissive:'#cfe3ff',emissiveIntensity:.08});
  const pile=(x,z,sx,sy,sz,r)=>{const g=new THREE.Group();for(let k=0;k<4;k++){const m=new THREE.Mesh(new THREE.SphereGeometry(1,28,16),snowM);m.scale.set(sx*(.6+.4*Math.random()),sy*(.6+.5*Math.random()),sz*(.6+.4*Math.random()));m.position.set((Math.random()-.5)*sx,0,(Math.random()-.5)*sz);m.castShadow=true;m.receiveShadow=true;g.add(m)}g.position.set(x,0,z);g.rotation.y=r||0;scene.add(g);blob(x,z,sx*2.6,sz*2.6,.5)};
@@ -2267,14 +2267,20 @@ const YARD_OBJ=scene.children.slice(_n0);_n0=scene.children.length;
  const stoneT=ctex(512,256,(g,w,h)=>{g.fillStyle='#6d5a48';g.fillRect(0,0,w,h);const cs=['#9a8064','#b39a7a','#7e6650','#c4ae8c','#8d7a66','#a38b70'];for(let y=0;y<h;y+=22)for(let x=-(y%44);x<w;x+=34+Math.random()*26){g.fillStyle=cs[Math.floor(Math.random()*cs.length)];g.beginPath();g.roundRect?g.roundRect(x+2,y+2,30+Math.random()*24,18,6):g.rect(x+2,y+2,30,18);g.fill()}},2,1);
  const stoneM=gloss('#ffffff',{map:stoneT,roughness:.7,clearcoat:.3,envMapIntensity:.3});
  const box=(w,h,d,m,x,y,z,r)=>{const o=new THREE.Mesh(rbox(w,h,d,r||.03,2),m);o.position.set(x,y,z);o.castShadow=o.receiveShadow=true;scene.add(o);return o};
- // garage block (open two-car), x -2.4..3.6
+ // garage block (closed two-car door), x -2.4..3.6
  const GX0=-2.4,GX1=3.6,GW=GX1-GX0,GC=(GX0+GX1)/2,GH=2.75;
  box(GW+.6,GH,.3,sidM,GC,GH/2,ZH-6,.02);box(GW+.6,.3,6,sidM,GC,GH-.15,ZH-3,.02);
- // dark interior + clutter
- const intM=matte('#120e0b',{roughness:.95});const intr=new THREE.Mesh(new THREE.BoxGeometry(GW-.4,GH-.35,5.6),intM);intr.position.set(GC,(GH-.35)/2,ZH-2.9);scene.add(intr);
- intr.geometry=new THREE.BoxGeometry(GW-.4,GH-.35,5.6);intM.side=THREE.BackSide;
- const clut=['#2e1e16','#3d2e1e','#22222a','#4a1a14','#30321e','#4e3e2e','#1a2232'];for(let i=0;i<14;i++){const w=.3+Math.random()*.6,h=.3+Math.random()*1.3;box(w,h,.4+Math.random()*.4,matte(clut[i%clut.length]),GX0+.5+Math.random()*(GW-1),h/2,ZH-5+Math.random()*1.6,.02)}
- box(.08,2,.6,matte('#4a3a2c'),GX0+.5,1,ZH-3,.02);box(1.6,.06,.5,matte('#6b5038'),GX0+1.3,1.5,ZH-5.3,.01);
+ // closed sectional garage door (cream, glossy, 4 panels w/ horizontal grooves) - no interior/clutter
+ {const ox0=GX0+.135,ox1=GX1+.015,ow=ox1-ox0,oh=GH-.3,dc=(ox0+ox1)/2,DZ=ZH+.03;
+  const doorM=gloss('#f4ecc4',{roughness:.28,clearcoat:.6,clearcoatRoughness:.15,envMapIntensity:.6,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1});
+  const grvM=matte('#8f8460',{roughness:.8});
+  // recessed dark-cream backer well behind the panels (shows as groove lines)
+  const bk=new THREE.Mesh(new THREE.BoxGeometry(ow-.02,oh-.01,.04),grvM);bk.position.set(dc,oh/2+.004,DZ-.06);bk.receiveShadow=true;scene.add(bk);
+  const N=4,gap=.035,ph=(oh-gap*(N+1))/N,cols=4,cw=(ow-.04)/cols;
+  for(let r=0;r<N;r++){const y=gap+ph/2+r*(ph+gap);box(ow-.04,ph,.05,doorM,dc,y,DZ,.018);}
+  box(.36,.05,.04,gloss('#3a2a1e',{roughness:.3}),dc,gap+ph*.5,DZ+.06,.015);
+  // weather strip at the bottom, sits just above the slab
+  box(ow-.05,.025,.07,matte('#3b352c'),dc,.0135,DZ,.008);}
  // door header + jambs (siding colour) and big dark header beam
  box(GW+.5,.38,.3,gloss('#3a2a1e',{roughness:.4}),GC,GH-.1,ZH+.05,.03);
  box(.35,GH,.3,sidM,GX0-.05,GH/2,ZH,.02);
@@ -2437,7 +2443,7 @@ function leave(){setScene('drive');if(typeof liveOff==='function'){liveOff();liv
 function muteLbl(){$('bMute').textContent=MUTE?'🔇':'🔊'}muteLbl();$('bMute').onclick=()=>{MUTE=!MUTE;sset('chMute',MUTE?'1':'0');muteLbl();sfx('tap')};
 function enterGame(){setScene(S&&S.tm?'yard':'drive');$('bTourBack')&&$('bTourBack').classList.toggle('hidden',!(S&&S.tm&&S.phase==='over'));titleMode=false;resize();$('title').classList.add('hidden');$('lobby').classList.add('hidden');$('hud').classList.remove('hidden');camT.pos.copy(CAM_HOME.pos);camT.look.copy(CAM_HOME.look);showBags(S.bags);ui()}
 
-// ---------------- Skill Stop (2-stage: aim sweep, then power grow/shrink) ----------------
+// ---------------- Skill Stop (3-stage: aim ball on front lip, power ball on side rail, spin meter) ----------------
 let THROWMODE=sget('chThrow')==='skill'?'skill':'swipe';
 function paintSeg(){document.querySelectorAll('.modeSeg button').forEach(b=>b.classList.toggle('on',b.dataset.m===THROWMODE))}
 document.querySelectorAll('.modeSeg button').forEach(b=>b.onclick=()=>{THROWMODE=b.dataset.m;sset('chThrow',THROWMODE);paintSeg();sfx('tap')});paintSeg();
@@ -2448,44 +2454,42 @@ function landPt(v,yaw,cv,wx,wz,path){cv=cv||0;wx=wx||0;wz=wz||0;const hv=v*Math.
  for(let i=0;i<600;i++){if(path&&i%6===0)path.push([x,y,z]);vy-=G*DT;vx+=(cv+wx)*DT;vz+=wz*DT;const sp=Math.hypot(vx,vy,vz),k=.012*sp*DT;vx-=vx*k;vy-=vy*k;vz-=vz*k;x+=vx*DT;y+=vy*DT;z+=vz*DT;const L=onBoardLocal(x,y,z);if(L.inside&&y<=boardY(L.s)+.03)return [x,y,z];if(y<=.03)return [x,.03,z]}return [x,y,z]}
 // sweet spot: the power that drops the bag just short of the hole so it slides in (straight line)
 const SWEET_V=(()=>{let best=8.8,bd=9;for(let v=8.3;v<=9.4;v+=.01){const p=landPt(v,0),s=(ZF-p[2])/CT,d=Math.abs(s-(HOLE_S-.22));if(d<bd){bd=d;best=v}}return best})();
-const lineG=new THREE.Group();lineG.renderOrder=10;scene.add(lineG);lineG.visible=false;
-const lineMat=new THREE.MeshPhysicalMaterial({color:'#ffd34d',emissive:'#ffb400',emissiveIntensity:.55,roughness:.2,clearcoat:1,clearcoatRoughness:.05,depthTest:false,transparent:true,opacity:.95});
-const lineEdge=new THREE.MeshBasicMaterial({color:'#3a1d08',depthTest:false,transparent:true,opacity:.9});
-const shaftG=rbox(.07,.02,1,.009,2);shaftG.translate(0,0,-.5);
-const shE=new THREE.Mesh(shaftG,lineEdge);shE.scale.set(1.6,.6,1);shE.renderOrder=10;lineG.add(shE);
-const sh=new THREE.Mesh(shaftG,lineMat);sh.renderOrder=11;lineG.add(sh);
-const headG=new THREE.ConeGeometry(.12,.3,24);headG.rotateX(-Math.PI/2);
-const hdE=new THREE.Mesh(headG,lineEdge);hdE.scale.setScalar(1.3);hdE.renderOrder=10;lineG.add(hdE);const hd=new THREE.Mesh(headG,lineMat);hd.renderOrder=11;lineG.add(hd);
-// landing ring at the tip + sweet-spot ring over the hole
-const ringM=new THREE.MeshPhysicalMaterial({color:'#ffffff',emissive:'#ffe066',emissiveIntensity:.6,roughness:.15,clearcoat:1,depthTest:false,transparent:true});
-const tipRing=new THREE.Mesh(new THREE.TorusGeometry(.11,.018,10,36),ringM);tipRing.rotation.x=-Math.PI/2;tipRing.renderOrder=12;scene.add(tipRing);tipRing.visible=false;
-const sweetM=new THREE.MeshPhysicalMaterial({color:'#7dff6a',emissive:'#3fdc2a',emissiveIntensity:.9,roughness:.15,clearcoat:1,transparent:true,opacity:.9,depthTest:false});
-const sweet=new THREE.Mesh(new THREE.TorusGeometry(HOLE_R*1.7,.016,10,40),sweetM);sweet.position.set(0,boardY(HOLE_S)+.02,boardZ(HOLE_S));sweet.rotation.x=-Math.PI/2+TH;sweet.renderOrder=12;scene.add(sweet);sweet.visible=false;
-const LINE_Y=.06,LINE_Z0=-.7;
+// Skill Stop 3D markers: aim ball on the board's front lip, power ball on the side rail (sweet band at hole depth)
+const skM=c=>new THREE.MeshPhysicalMaterial({color:c,emissive:c,emissiveIntensity:.35,roughness:.12,clearcoat:1,clearcoatRoughness:.04,depthTest:false,transparent:true,opacity:.98});
+const SKG=new THREE.Group();SKG.renderOrder=11;scene.add(SKG);SKG.visible=false;
+const ballG=new THREE.SphereGeometry(.042,28,18),aimBall=new THREE.Mesh(ballG,skM('#ffd34d')),powBall=new THREE.Mesh(ballG,skM('#ffd34d'));
+[aimBall,powBall].forEach(m=>{m.renderOrder=12;SKG.add(m)});
+const RX=BW/2+.05,LIP_Y=boardY(0)+.045,LIP_Z=boardZ(0)+.01,AIM_X=BW/2-.05;
+// front-lip track + centre notch
+const trkM=skM('#3a1d08');trkM.emissiveIntensity=0;trkM.opacity=.75;
+const lip=new THREE.Mesh(rbox(BW,.014,.03,.006,2),trkM);lip.position.set(0,LIP_Y-.03,LIP_Z);lip.renderOrder=11;SKG.add(lip);
+const notch=new THREE.Mesh(rbox(.03,.03,.04,.008,2),skM('#7dff6a'));notch.position.set(0,LIP_Y-.025,LIP_Z);notch.renderOrder=11;SKG.add(notch);
+// side rail along the board (front to back) with sweet-spot band at the hole
+const rail=new THREE.Mesh(rbox(.026,.014,BL,.006,2),trkM);rail.position.set(RX,boardY(BL/2)+.02,boardZ(BL/2));rail.rotation.x=TH;rail.renderOrder=11;SKG.add(rail);
+const band=new THREE.Mesh(rbox(.06,.03,HOLE_R*1.4,.01,2),skM('#7dff6a'));band.position.set(RX,boardY(HOLE_S)+.025,boardZ(HOLE_S));band.rotation.x=TH;band.renderOrder=11;SKG.add(band);
+const vToS=v=>v<=SWEET_V?Math.max(0,(v-SK_VMIN)/(SWEET_V-SK_VMIN))*HOLE_S:HOLE_S+Math.min(1,(v-SWEET_V)/(SK_VMAX-SWEET_V))*(BL-HOLE_S);
 // curve preview dots (spin + wind) and glossy spin meter
 const DOTS=[];{const dg=new THREE.SphereGeometry(.028,12,8);for(let i=0;i<40;i++){const m=new THREE.Mesh(dg,new THREE.MeshPhysicalMaterial({color:'#ffffff',emissive:'#b06cff',emissiveIntensity:.6,roughness:.15,clearcoat:1,depthTest:false,transparent:true,opacity:.9}));m.renderOrder=13;m.visible=false;scene.add(m);DOTS.push(m)}}
 function pathDots(pth,stage){DOTS.forEach((m,i)=>{const q=pth[i];if(!q||!stage){m.visible=false;return}m.visible=true;m.position.set(q[0],q[1],q[2]);m.material.emissive.set(stage===3?'#b06cff':'#7fc8ff');m.scale.setScalar(stage===3?1.2:.8)})}
 function spinMeter(on){const el=$('spinM');if(!el)return;el.classList.toggle('hidden',!on);if(!on)return;const x=(SK.sp*.5+.5)*100;el.querySelector('.needle').style.left=x+'%';el.querySelector('.val').textContent=Math.abs(SK.sp)<.08?'NO SPIN':(SK.sp<0?'⟲ LEFT ':'RIGHT ⟳ ')+Math.round(Math.abs(SK.sp)*100)+'%'}
 function skillActive(){return THROWMODE==='skill'&&myTurn()}
 function skillUpdate(dt){
- const on=skillActive();if(!on){if(SK.stage){SK.stage=0}lineG.visible=tipRing.visible=sweet.visible=false;pathDots([],0);spinMeter(false);$('skillTag').classList.add('hidden');return}
+ const on=skillActive();if(!on){if(SK.stage){SK.stage=0}SKG.visible=false;pathDots([],0);spinMeter(false);$('skillTag').classList.add('hidden');return}
  if(!SK.stage){SK.stage=1;SK.t=0}
  SK.t+=dt;
  if(SK.stage===1){SK.yaw=Math.sin(SK.t*2*Math.PI/SK_AIM_P)*SK_YAW;SK.v=SWEET_V}
  else if(SK.stage===2){SK.v=SK_VMIN+(SK_VMAX-SK_VMIN)*(.5-.5*Math.cos(SK.t*2*Math.PI/SK_POW_P));SK.sp=0}
  else if(SK.stage===3){SK.sp=Math.sin(SK.t*2*Math.PI/SK_SP_P)}
- const W=(S&&S.wind)||{x:0,z:0},pth=[],p=landPt(SK.v,SK.yaw,SK.sp*SK_CURVE,W.x,W.z,pth);pathDots(pth,SK.stage);const p0=landPt(SK.v,SK.yaw),len=Math.hypot(p0[0],p0[2]-LINE_Z0)-.15;
- lineG.visible=true;lineG.position.set(0,LINE_Y,LINE_Z0);lineG.rotation.y=-SK.yaw;
- const L=SK.stage===1?len:len;sh.scale.z=shE.scale.z=Math.max(.3,L);hd.position.z=hdE.position.z=-Math.max(.3,L)-.12;
- tipRing.visible=SK.stage>=2;tipRing.position.set(p[0],p[1]+.01,p[2]);const pul=1+.12*Math.sin(tAll*10);tipRing.scale.setScalar(pul);
- sweet.visible=true;sweet.scale.setScalar(1+.08*Math.sin(tAll*6));
- const good=SK.stage===1?Math.abs(SK.yaw)<.012:SK.stage===2?Math.abs(SK.v-SWEET_V)<.08&&Math.abs(SK.yaw)<.03:Math.abs(p[0])<.06;
- lineMat.color.set(good?'#7dff6a':'#ffd34d');lineMat.emissive.set(good?'#2fd01a':'#ffb400');
+ const W=(S&&S.wind)||{x:0,z:0},pth=[];if(SK.stage===3)landPt(SK.v,SK.yaw,SK.sp*SK_CURVE,W.x,W.z,pth);pathDots(pth,SK.stage===3?3:0);
+ SKG.visible=true;aimBall.position.set(SK.yaw/SK_YAW*AIM_X,LIP_Y,LIP_Z);const ps=vToS(SK.v);powBall.position.set(RX,boardY(ps)+.045,boardZ(ps));powBall.visible=SK.stage>=2;
+ const gA=Math.abs(SK.yaw)<.012,gP=Math.abs(SK.v-SWEET_V)<.08;aimBall.material.color.set(gA?'#7dff6a':'#ffd34d');aimBall.material.emissive.set(gA?'#2fd01a':'#ffb400');
+ powBall.material.color.set(gP?'#7dff6a':'#ffd34d');powBall.material.emissive.set(gP?'#2fd01a':'#ffb400');const pul=1+.1*Math.sin(tAll*10);(SK.stage===1?aimBall:SK.stage===2?powBall:null)?.scale.setScalar(pul);if(SK.stage!==1)aimBall.scale.setScalar(1);if(SK.stage!==2)powBall.scale.setScalar(1);
+ band.scale.x=1+.15*Math.sin(tAll*6);
  const tg=$('skillTag');tg.classList.remove('hidden');tg.innerHTML='<span class="'+(SK.stage===1?'on':'done')+'">1 · AIM</span><span class="'+(SK.stage===2?'on':SK.stage>2?'done':'')+'">2 · POWER</span><span class="'+(SK.stage===3?'on':'')+'">3 · SPIN</span>';
  $('hint').textContent=SK.stage===1?'👆 Tap to lock aim':SK.stage===2?'👆 Tap to lock power':'👆 Tap to lock spin & throw';spinMeter(SK.stage===3)}
 function skillTap(){if(!skillActive()||!SK.stage)return;sfx('tap');
  if(SK.stage===1){SK.stage=2;SK.t=0;return}if(SK.stage===2){SK.stage=3;SK.t=0;return}
- const params={v:+SK.v.toFixed(3),yaw:+SK.yaw.toFixed(4),curve:+(SK.sp*SK_CURVE).toFixed(3),spin:+(6+SK.sp*6).toFixed(2),m:'s'};SK.stage=0;lineG.visible=tipRing.visible=sweet.visible=false;pathDots([],0);spinMeter(false);$('skillTag').classList.add('hidden');SK.last=params;doThrow(params)}
+ const params={v:+SK.v.toFixed(3),yaw:+SK.yaw.toFixed(4),curve:+(SK.sp*SK_CURVE).toFixed(3),spin:+(6+SK.sp*6).toFixed(2),m:'s'};SK.stage=0;SKG.visible=false;pathDots([],0);spinMeter(false);$('skillTag').classList.add('hidden');SK.last=params;doThrow(params)}
 // ---------------- swipe input ----------------
 let sw=null;
 canvas.addEventListener('pointerdown',e=>{audioInit();if(!myTurn())return;if(THROWMODE==='skill'){skillTap();return}sw={pts:[[e.clientX,e.clientY,performance.now()]]};$('pow').classList.add('show')});
@@ -2710,6 +2714,6 @@ showBags(DEMO);CAM.pos.copy(CAM_TITLE.pos);camT.pos.copy(CAM_TITLE.pos);
 requestAnimationFrame(frame);
 if(Q.get('nosplash')==='1'){/* no splash in this game; flag accepted for test parity */}
 // test hooks
-window.CH={get wind(){return S&&S.wind},lanes:()=>LANES.map(L=>({mid:L.mid,vis:L.g.visible,bags:L.bags.filter(m=>m.visible).length,anim:!!L.anim})),get scene(){return SCENE},setCam:(p,l,f)=>{titleMode=false;CAMLOCK=1;camT.pos.set(...p);camT.look.set(...l);CAM.pos.set(...p);CAM.look.set(...l);if(f){camera.fov=f;camera.updateProjectionMatrix()}},award:(n,id)=>award(n,id),get BS(){return BS},get TOURS(){return TOURS},boardRows:()=>boardRows(),get skill(){return {sp:SK.sp,stage:SK.stage,yaw:SK.yaw,v:SK.v,last:SK.last,sweet:SWEET_V,mode:THROWMODE}},skillTap:()=>skillTap(),landPt,dbg:()=>({cam:camera.position.toArray(),look:CAM.look.toArray(),fov:camera.fov,asp:camera.aspect,title:titleMode,w:renderer.domElement.width,h:renderer.domElement.height,hidden:document.hidden,vis:document.visibilityState}),get qName(){return JSON.stringify(QUAL[qLevel])},get S(){return S},get ME(){return ME},get anim(){return !!anim},throwWith:p=>doThrow(p),simulate,roundPts,setQuality,get q(){return qLevel},myTurn};
+window.CH={get wind(){return S&&S.wind},lanes:()=>LANES.map(L=>({mid:L.mid,vis:L.g.visible,bags:L.bags.filter(m=>m.visible).length,anim:!!L.anim})),get scene(){return SCENE},setCam:(p,l,f)=>{titleMode=false;CAMLOCK=1;camT.pos.set(...p);camT.look.set(...l);CAM.pos.set(...p);CAM.look.set(...l);if(f){camera.fov=f;camera.updateProjectionMatrix()}},award:(n,id)=>award(n,id),get BS(){return BS},get TOURS(){return TOURS},boardRows:()=>boardRows(),get skill(){return {aimBall:SKG.visible?aimBall.position.toArray():null,powBall:SKG.visible&&powBall.visible?powBall.position.toArray():null,sweetS:HOLE_S,powS:vToS(SK.v),sp:SK.sp,stage:SK.stage,yaw:SK.yaw,v:SK.v,last:SK.last,sweet:SWEET_V,mode:THROWMODE}},skillTap:()=>skillTap(),landPt,dbg:()=>({cam:camera.position.toArray(),look:CAM.look.toArray(),fov:camera.fov,asp:camera.aspect,title:titleMode,w:renderer.domElement.width,h:renderer.domElement.height,hidden:document.hidden,vis:document.visibilityState}),get qName(){return JSON.stringify(QUAL[qLevel])},get S(){return S},get ME(){return ME},get anim(){return !!anim},throwWith:p=>doThrow(p),simulate,roundPts,setQuality,get q(){return qLevel},myTurn};
 })();
 </script></body></html>
