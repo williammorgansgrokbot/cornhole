@@ -2613,10 +2613,11 @@ function postState(){if(!S)return;const L=S.last;
 function gameOver(){const st=S.st||[{},{}];
  S.players.forEach((p,i)=>{if(!mine(i))return;const r=bRec(p.name);r.games=(r.games||0)+1;if(S.winner===i)r.wins=(r.wins||0)+1;r.holes=(r.holes||0)+(st[i].h||0);r.air=(r.air||0)+(st[i].a||0);
   award(p.name,'game1');if(MODE==='online')award(p.name,'online');if(r.games>=10)award(p.name,'g10');if(r.wins>=3)award(p.name,'w3');if(r.holes>=25)award(p.name,'h25');bSave(p.name)});
- // scoreboard record (host / pass&play phone writes once; id = game id)
- if(MODE==='pp'||ME===0){const rec={id:S.id,date:Date.now(),mode:MODE==='pp'?(S.tm?'tournament':'pp'):'online',winner:S.players[S.winner].name,rounds:S.round,
+ // scoreboard record: every phone writes the same game id; DB rule is write-once so exactly one record lands
+ // (old code only wrote from player-index 0, so the winner/other phone never saved or showed it locally)
+ {const rec={id:S.id,date:Date.now(),mode:MODE==='pp'?(S.tm?'tournament':'pp'):'online',winner:S.players[S.winner].name,rounds:S.round,
    players:S.players.map((p,i)=>({name:p.name,score:p.score,holes:st[i].h||0,air:st[i].a||0,woody:st[i].w||0,four:st[i].f||0,thrown:st[i].t||0}))};
-  SBG[rec.id]=rec;sset('chSB',JSON.stringify(SBG));const d=db();if(d)Promise.resolve(d.set(CR+'scoreboard/games/'+rec.id,rec)).catch(e=>console.warn('sb write',e&&e.message))}
+  SBG[rec.id]=rec;sset('chSB',JSON.stringify(SBG));if(!$('ovSB').classList.contains('hidden'))renderSB();const d=db();if(d)Promise.resolve(d.get?d.get(CR+'scoreboard/games/'+rec.id):null).then(v=>v&&v.date?null:d.set(CR+'scoreboard/games/'+rec.id,rec)).catch(e=>console.warn('sb write (dup ok)',e&&e.message))}
  if(S.tm)tourResult(S.tm,S.players[S.winner].name,S.players.map(p=>p.score));
  $('bTourBack').classList.toggle('hidden',!S.tm)}
 // stats + award candidates, computed by the authoritative thrower inside doThrow
@@ -2684,7 +2685,8 @@ $('bTour').onclick=()=>{sfx('tap');TV=null;renderTourSetup();$('ovTour').classLi
 $('bTourBack').onclick=()=>{sfx('tap');const tid=S&&S.tm&&S.tm.tid;leave();TV=tid;renderTourView();$('ovTour').classList.remove('hidden')};
 try{const lt=JSON.parse(sget('chTours')||'{}')||{};Object.assign(TOURS,lt)}catch(e){}
 // live DB wiring
-(function(){const d=db();if(!d)return;
+// firebase SDK is <script defer>, so it isn't loaded yet when this inline script runs: retry on window load
+(function wire(){const d=db();if(!d){if(document.readyState!=='complete')addEventListener('load',wire,{once:true});return}
  d.on('familyExtra',v=>{let ch=false;Object.keys(v||{}).forEach(k=>{const n=nk(v[k]&&v[k].name);if(n&&!EXTRA[n]){EXTRA[n]=1;ch=true}});if(ch){sset('wofExtra',JSON.stringify(Object.keys(EXTRA)));renderMe()}});
  d.on(CR+'scoreboard',v=>{SBR=v||{};CHAMPS=Object.assign({},(v&&v.champions)||{});if(!$('ovSB').classList.contains('hidden'))renderSB()});
  d.on(CR+'badges',v=>{BSR=v||{};Object.keys(BSR).forEach(k=>{const r=BSR[k],l=bRec(k);['games','wins','holes','air'].forEach(f=>l[f]=Math.max(l[f]||0,r[f]||0));Object.assign(l.earned,r.earned||{})});if(!$('ovAch').classList.contains('hidden'))renderAch()});
