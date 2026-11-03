@@ -149,7 +149,7 @@ table.lb tr.top0 td{background:linear-gradient(180deg,#fff6b0,#ffd34d)}table.lb 
 
 #lkHead{display:flex;gap:12px;align-items:center;margin:6px 0 10px}#lkHead b{font:800 22px 'Baloo 2';display:block}#lkHead small{display:block;font-size:12px;color:var(--brown2)}
 .xpbar{height:12px;border-radius:8px;background:#e4dcc6;border:2px solid var(--brown);overflow:hidden;margin:4px 0;width:200px}.xpbar i{display:block;height:100%;background:linear-gradient(90deg,#ffd34d,#ff8a00)}
-#lkGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+#lkGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .bagc{font:inherit;border:3px solid var(--brown2);border-radius:16px;background:#ece6d6;padding:8px;text-align:center;opacity:.6;filter:grayscale(.7);cursor:pointer}
 .bagc.got{opacity:1;filter:none;background:linear-gradient(180deg,#fffef6,#fff1bd)}.bagc.eq{border-color:#1f9a5a;box-shadow:0 0 0 3px #7fe0a8}
 .bagc b{display:block;font:800 17px 'Baloo 2'}.bagc i{display:block;font-style:normal;font-weight:800;font-size:12px;color:var(--brown2)}.bagc small{display:block;font-size:11px}
@@ -157,6 +157,7 @@ table.lb tr.top0 td{background:linear-gradient(180deg,#fff6b0,#ffd34d)}table.lb 
 .bagi.lv2{background:linear-gradient(135deg,#ffb0a8,#ff3b2f 40%,#8a1008 60%,#ff7a70)}
 .bagi.lv3{background:radial-gradient(circle at 30% 30%,#fff 0 2px,transparent 3px),radial-gradient(circle at 70% 60%,#fff 0 2px,transparent 3px),radial-gradient(circle at 45% 80%,#fff8 0 2px,transparent 3px),linear-gradient(135deg,#ff8a80,#d4241a)}
 .bagi.lv4{background:#ff5a48;box-shadow:0 0 12px 4px #ff6a50}
+.bagi.lv6{background:radial-gradient(circle at 30% 30%,#fff 0 1px,transparent 2px),radial-gradient(circle at 70% 60%,#fff 0 1px,transparent 2px),radial-gradient(circle at 45% 80%,#d6c4ff 0 1px,transparent 2px),radial-gradient(ellipse at 60% 40%,#7b3fe0,#2a1466 55%,#0d0a2e);box-shadow:0 0 14px 4px #7b5cff}
 .bagi.lv5{background:linear-gradient(135deg,#ffd34d,#ff8a00,#ff4fd8,#4fc3ff,#ffd34d);box-shadow:0 0 14px 4px #ffd34d}
 </style><script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script><script>window.FIREBASE_CONFIG = {
   apiKey: "AIzaSyB421w1keWwXNrh-Bbn-UEH5HjKmM0ow3M",
@@ -2385,13 +2386,14 @@ const bagGeo=rbox(.15,.04,.15,.019,4);
 const bagMats=['#ff3b2f','#1846c8'].map(c=>new THREE.MeshPhysicalMaterial({color:c,roughness:.5,clearcoat:.55,clearcoatRoughness:.25,sheen:1,sheenColor:new THREE.Color('#ffffff'),sheenRoughness:.4}));
 const bagMeshes=[];for(let i=0;i<8;i++){const m=new THREE.Mesh(bagGeo,bagMats[0]);m.castShadow=true;m.receiveShadow=true;m.visible=false;scene.add(m);bagMeshes.push(m)}
 const handBag=new THREE.Mesh(bagGeo,bagMats[0]);handBag.position.set(.22,1.22,-.7);scene.add(handBag);
-// ---------------- bag equipment looks (levels 1-5) ----------------
+// ---------------- bag equipment looks (levels 1-6) ----------------
 const BAGC=['#ff3b2f','#1846c8'],BMC={};
-function bagLv(p){const pl=S&&S.players&&S.players[p];const v=pl&&+pl.bag;return v>=1&&v<=5?Math.floor(v):1}
+function bagLv(p){const pl=S&&S.players&&S.players[p];const v=pl&&+pl.bag;return v>=1&&v<=6?Math.floor(v):1}
 function bagMat(p,lv){lv=lv||bagLv(p);if(lv<=1)return bagMats[p];const k=p+'_'+lv;if(BMC[k])return BMC[k];const c=BAGC[p];let m;
  if(lv===2)m=new THREE.MeshPhysicalMaterial({color:c,metalness:.75,roughness:.2,clearcoat:1,clearcoatRoughness:.05});
  else if(lv===3)m=new THREE.MeshPhysicalMaterial({color:c,metalness:.55,roughness:.28,clearcoat:1,clearcoatRoughness:.08,iridescence:.6,sheen:1,sheenColor:new THREE.Color('#ffffff')});
  else if(lv===4)m=new THREE.MeshPhysicalMaterial({color:c,roughness:.35,clearcoat:.8,emissive:new THREE.Color(c),emissiveIntensity:.85});
+ else if(lv===6)m=new THREE.MeshPhysicalMaterial({color:'#1a0f3d',metalness:.4,roughness:.3,clearcoat:1,clearcoatRoughness:.05,iridescence:.8,sheen:1,sheenColor:new THREE.Color('#9b6bff'),emissive:new THREE.Color('#3a1a7a'),emissiveIntensity:.55});
  else m=new THREE.MeshPhysicalMaterial({color:'#ffc93a',metalness:.9,roughness:.18,clearcoat:1,iridescence:1,emissive:new THREE.Color('#ff8a00'),emissiveIntensity:.6});
  m.userData.lv=lv;m.userData.p=p;return BMC[k]=m}
 // one pooled Points cloud for sparkles + trails (cheap; scaled down / off by the quality scaler)
@@ -2404,9 +2406,11 @@ const _fc=new THREE.Color(),FXPREV=new WeakMap();
 function bagFx(dt,t){const q=typeof qLevel==='number'?qLevel:0,rate=q>=4?0:[1,.85,.6,.35][q];
  const list=bagMeshes.concat([handBag]);if(rate>0)list.forEach(m=>{if(!m.visible||!m.parent)return;const lv=m.material.userData.lv||1;
   if(lv===5){m.material.emissive.setHSL((t*.15)%1,1,.5)}
+  if(lv===6){m.material.emissive.setHSL(.72+.06*Math.sin(t*1.3),.8,.22+.06*Math.sin(t*2.1))}
   if(lv<3)return;const P=m.position,pr=FXPREV.get(m),sp=pr?P.distanceTo(pr)/Math.max(dt,1e-3):0;FXPREV.set(m,P.clone());
-  const pc=m.material.userData.p,base=lv===5?_fc.setHSL((t*.3+Math.random()*.3)%1,1,.65):_fc.set(lv===3?'#fff6c8':BAGC[pc]).lerp(new THREE.Color('#ffffff'),.35);
+  const pc=m.material.userData.p,base=lv===6?_fc.setHSL(.66+Math.random()*.16,.85,.55):lv===5?_fc.setHSL((t*.3+Math.random()*.3)%1,1,.65):_fc.set(lv===3?'#fff6c8':BAGC[pc]).lerp(new THREE.Color('#ffffff'),.35);
   if((lv===3||lv===5)&&Math.random()<dt*14*rate)fxSpawn(P.x+(Math.random()-.5)*.16,P.y+.02+Math.random()*.05,P.z+(Math.random()-.5)*.16,lv===3?_fc.set('#fff6c8'):base,0,.12+Math.random()*.1,0,.6);
+  if(lv===6&&Math.random()<dt*12*rate){const w=Math.random()<.7;fxSpawn(P.x+(Math.random()-.5)*.2,P.y+.01+Math.random()*.06,P.z+(Math.random()-.5)*.2,w?_fc.set('#ffffff'):_fc.set('#b48cff'),(Math.random()-.5)*.03,.03+Math.random()*.04,(Math.random()-.5)*.03,.5+Math.random()*.5)}
   if(lv>=4&&sp>1.2){const n=Math.ceil(dt*60*rate);for(let k=0;k<n;k++)fxSpawn(P.x+(Math.random()-.5)*.05,P.y+(Math.random()-.5)*.05,P.z+(Math.random()-.5)*.05,base,0,0,0,.45)}});
  fxAlive=0;for(let i=0;i<FXN;i++){if(fxLife[i]<=0){fxCol[i*3]=fxCol[i*3+1]=fxCol[i*3+2]=0;continue}fxLife[i]-=dt;fxAlive++;const a=Math.max(0,fxLife[i]/fxMax[i]);
   fxPos[i*3]+=fxVel[i*3]*dt;fxPos[i*3+1]+=fxVel[i*3+1]*dt;fxPos[i*3+2]+=fxVel[i*3+2]*dt;const tw=.6+.4*Math.sin(t*30+i);fxCol[i*3]=fxBase[i*3]*a*tw;fxCol[i*3+1]=fxBase[i*3+1]*a*tw;fxCol[i*3+2]=fxBase[i*3+2]*a*tw}
@@ -2646,9 +2650,9 @@ function bRec(n){const k=dkey(n);if(!BS[k])BS[k]={games:0,wins:0,holes:0,air:0,x
 function bSave(n){sset('chBadges',JSON.stringify(BS));const d=db();if(d)Promise.resolve(d.set(CR+'badges/'+dkey(n),bRec(n))).catch(e=>console.warn('badge write',e&&e.message))}
 const TQ=[];let TON=false;
 function award(n,id){const r=bRec(n);if(r.earned[id]||!BDI[id])return false;r.earned[id]=Date.now();TQ.push([n,id]);if(!TON)nextT();return true}
-// ---- bag equipment: XP from games, 5 levels ----
+// ---- bag equipment: XP from games, 6 levels ----
 const XPG=10,XPW=10,XPH=2,XPA=3;// per game, win bonus, per hole (cornhole), extra per airmail
-const BAGL=[{n:'Classic',xp:0,ic:'🟥',d:'The trusty plain duck-cloth bag.'},{n:'Chrome',xp:75,ic:'🪩',d:'Shiny metallic finish.'},{n:'Sparkle',xp:250,ic:'✨',d:'Glitter sparkles drift off the bag.'},{n:'Glow',xp:500,ic:'💡',d:'Glowing bag with a soft light trail.'},{n:'Legendary',xp:800,ic:'🌈',d:'Rainbow gold: sparkle, glow and trail.'}];
+const BAGL=[{n:'Classic',xp:0,ic:'🟥',d:'The trusty plain duck-cloth bag.'},{n:'Chrome',xp:75,ic:'🪩',d:'Shiny metallic finish.'},{n:'Sparkle',xp:250,ic:'✨',d:'Glitter sparkles drift off the bag.'},{n:'Glow',xp:500,ic:'💡',d:'Glowing bag with a soft light trail.'},{n:'Legendary',xp:800,ic:'🌈',d:'Rainbow gold: sparkle, glow and trail.'},{n:'Cosmic',xp:1200,ic:'🌌',d:'Galaxy starfield with twinkling stars and a nebula trail.'}];
 const xpLv=x=>{let l=1;BAGL.forEach((b,i)=>{if((x||0)>=b.xp)l=i+1});return l};
 function xpFor(win,h,a){return XPG+(win?XPW:0)+XPH*(h||0)+XPA*(a||0)}
 function bagOf(n){const r=BS[dkey(n)];if(!r)return 1;const u=xpLv(r.xp),e=+r.bag||1;return Math.max(1,Math.min(u,e))}
@@ -2739,7 +2743,7 @@ try{const lt=JSON.parse(sget('chTours')||'{}')||{};Object.assign(TOURS,lt)}catch
 // bag locker
 let lockWho=null;
 function renderLocker(){const n=lockWho,r=bRec(n),x=r.xp||0,u=xpLv(x),eq=bagOf(n),nx=BAGL[u];
- $('lkHead').innerHTML=avHTML(n,'lg')+'<div><b>'+esc(n)+'</b><small>'+x+' XP · level '+u+' / 5</small><div class="xpbar"><i style="width:'+(nx?Math.round(100*(x-BAGL[u-1].xp)/(nx.xp-BAGL[u-1].xp)):100)+'%"></i></div><small>'+(nx?(nx.xp-x)+' XP to '+nx.n:'All bags unlocked!')+'</small></div>';
+ $('lkHead').innerHTML=avHTML(n,'lg')+'<div><b>'+esc(n)+'</b><small>'+x+' XP · level '+u+' / '+BAGL.length+'</small><div class="xpbar"><i style="width:'+(nx?Math.round(100*(x-BAGL[u-1].xp)/(nx.xp-BAGL[u-1].xp)):100)+'%"></i></div><small>'+(nx?(nx.xp-x)+' XP to '+nx.n:'All bags unlocked!')+'</small></div>';
  $('lkGrid').innerHTML=BAGL.map((b,i)=>{const L=i+1,ok=L<=u;return '<button class="bagc lv'+L+(ok?' got':'')+(L===eq?' eq':'')+'" data-l="'+L+'"><span class="bagi lv'+L+'"></span><b>'+(ok?'':'🔒 ')+esc(b.n)+'</b><i>'+(ok?(L===eq?'EQUIPPED':'Tap to equip'):b.xp+' XP')+'</i><small>'+esc(b.d)+'</small></button>'}).join('');
  $('lkHow').textContent='Earn XP: +'+XPG+' per game, +'+XPW+' for a win, +'+XPH+' per cornhole, +'+XPA+' extra per airmail.'}
 $('lkGrid').onclick=e=>{const c=e.target.closest('.bagc');if(!c)return;if(equipBag(lockWho,+c.dataset.l)){sfx('one');renderLocker()}else sfx('tap')};
