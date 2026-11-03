@@ -2398,7 +2398,7 @@ let S=null,MODE=null,NET=null,ME=0,anim=null,pending=null,lastAnimId=null;
 function newGame(names,pids){return {ver:1,id:Math.random().toString(36).slice(2,8),players:names.map((n,i)=>({name:n,pid:pids?pids[i]:null,score:0})),round:1,first:0,thrower:0,windOn:WIND_ON,wind:rollWind(WIND_ON),thrown:[0,0],bags:[],last:null,phase:'aim',rp:null,hist:[],winner:null}}
 function nextThrower(s){const o=1-s.thrower;if(s.thrown[o]<PER)return o;return s.thrower}
 function myTurn(){if(!S||S.phase!=='aim'||anim)return false;if(MODE==='pp')return true;return S.thrower===ME}
-function doThrow(params){if(!myTurn())return;sfx('toss');params=Object.assign({},params);const W=S.wind||{x:0,z:0};params.wx=W.x;params.wz=W.z;
+function doThrow(params){if(!myTurn())return;applyDiff();sfx('toss');params=Object.assign({},params);const W=S.wind||{x:0,z:0};params.wx=W.x;params.wz=W.z;
  const before=S.bags.map(b=>Object.assign({},b));const p=S.thrower,res=simulate(before,p,params);
  const n=JSON.parse(JSON.stringify(S));n.ver++;n.bags=res.final;n.thrown[p]++;n.last={id:n.id+'-'+n.round+'-'+(n.thrown[0]+n.thrown[1]),by:p,params,before,final:res.final};
  if(n.thrown[0]+n.thrown[1]>=PER*2){const r=roundPts(n.bags),d=Math.abs(r[0]-r[1]),w=r[0]>r[1]?0:r[1]>r[0]?1:-1;
@@ -2447,8 +2447,10 @@ let THROWMODE=sget('chThrow')==='skill'?'skill':'swipe';
 function paintSeg(){document.querySelectorAll('.modeSeg button').forEach(b=>b.classList.toggle('on',b.dataset.m===THROWMODE))}
 document.querySelectorAll('.modeSeg button').forEach(b=>b.onclick=()=>{THROWMODE=b.dataset.m;sset('chThrow',THROWMODE);paintSeg();sfx('tap')});paintSeg();
 const DIFFS={easy:{b:1.1,sp:.9,n:'🟢 Easy'},medium:{b:1,sp:1,n:'🟡 Medium'},hard:{b:.9,sp:1.1,n:'🔴 Hard'}};let DIFF=DIFFS[sget('chDiff')]?sget('chDiff'):'medium';const DF=()=>DIFFS[DIFF];
+let SKBS=1,SKSP=1,SKREADY=false;// current skill ball scale & speed (absolute, never cumulative)
+function applyDiff(){const k=sget('chDiff');if(DIFFS[k])DIFF=k;const d=DF();SKBS=d.b;SKSP=d.sp;if(SKREADY){aimBall.scale.setScalar(SKBS);powBall.scale.setScalar(SKBS)}return d}
 function paintDiff(){document.querySelectorAll('.diffBtn').forEach(b=>b.textContent=DF().n)}
-document.querySelectorAll('.diffBtn').forEach(b=>b.onclick=()=>{const k=Object.keys(DIFFS);DIFF=k[(k.indexOf(DIFF)+1)%3];sset('chDiff',DIFF);paintDiff();sfx('tap')});paintDiff();
+document.querySelectorAll('.diffBtn').forEach(b=>b.onclick=()=>{const k=Object.keys(DIFFS);DIFF=k[(k.indexOf(DIFF)+1)%3];sset('chDiff',DIFF);applyDiff();paintDiff();sfx('tap')});paintDiff();applyDiff();
 const SK={stage:0,t:0,yaw:0,v:0,sp:0,lockT:0};const SK_SP_P=1.5,SK_CURVE=1.3;
 const SK_YAW=.1,SK_VMIN=7.6,SK_VMAX=10.2,SK_AIM_P=1.7,SK_POW_P=1.35;
 // landing point for a (v,yaw) with no curve: flight-only integration matching simulate()
@@ -2460,14 +2462,15 @@ const SWEET_V=(()=>{let best=8.8,bd=9;for(let v=8.3;v<=9.4;v+=.01){const p=landP
 const skM=c=>new THREE.MeshPhysicalMaterial({color:c,emissive:c,emissiveIntensity:.35,roughness:.12,clearcoat:1,clearcoatRoughness:.04,depthTest:false,transparent:true,opacity:.98});
 const SKG=new THREE.Group();SKG.renderOrder=11;scene.add(SKG);SKG.visible=false;
 const ballG=new THREE.SphereGeometry(.084,28,18),aimBall=new THREE.Mesh(ballG,skM('#ffd34d')),powBall=new THREE.Mesh(ballG,skM('#ffd34d'));
-[aimBall,powBall].forEach(m=>{m.renderOrder=12;SKG.add(m)});
+[aimBall,powBall].forEach(m=>{m.renderOrder=12;SKG.add(m)});SKREADY=true;applyDiff();
 const RX=BW/2+.05,LIP_Y=boardY(0)+.087,LIP_Z=boardZ(0)+.01,AIM_X=BW/2-.05;
 // front-lip track + centre notch
 const trkM=skM('#3a1d08');trkM.emissiveIntensity=0;trkM.opacity=.75;
 const lip=new THREE.Mesh(rbox(BW,.014,.03,.006,2),trkM);lip.position.set(0,LIP_Y-.072,LIP_Z);lip.renderOrder=11;SKG.add(lip);
 const notch=new THREE.Mesh(rbox(.03,.03,.04,.008,2),skM('#7dff6a'));notch.position.set(0,LIP_Y-.067,LIP_Z);notch.renderOrder=11;SKG.add(notch);
 // side rail along the board (front to back) with sweet-spot band at the hole
-const rail=new THREE.Mesh(rbox(.026,.014,BL,.006,2),trkM);rail.position.set(RX,boardY(BL/2)+.02,boardZ(BL/2));rail.rotation.x=TH;rail.renderOrder=11;SKG.add(rail);
+const TRK0=new THREE.Vector3(RX,boardY(0)+.02,boardZ(0)),TRK1=new THREE.Vector3(RX,boardY(BL)+.02,boardZ(BL));// track = board side rail, front edge -> back edge
+const rail=new THREE.Mesh(rbox(.026,.014,1,.006,2),trkM);rail.position.copy(TRK0).lerp(TRK1,.5);rail.scale.z=TRK0.distanceTo(TRK1);rail.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,-1),TRK1.clone().sub(TRK0).normalize());rail.renderOrder=11;SKG.add(rail);
 const band=new THREE.Mesh(rbox(.06,.03,HOLE_R*1.4,.01,2),skM('#7dff6a'));band.position.set(RX,boardY(HOLE_S)+.025,boardZ(HOLE_S));band.rotation.x=TH;band.renderOrder=11;SKG.add(band);
 const vToS=v=>v<=SWEET_V?Math.max(0,(v-SK_VMIN)/(SWEET_V-SK_VMIN))*HOLE_S:HOLE_S+Math.min(1,(v-SWEET_V)/(SK_VMAX-SWEET_V))*(BL-HOLE_S);
 // curve preview dots (spin + wind) and glossy spin meter
@@ -2477,20 +2480,20 @@ function spinMeter(on){const el=$('spinM');if(!el)return;el.classList.toggle('hi
 function skillActive(){return THROWMODE==='skill'&&myTurn()}
 function skillUpdate(dt){
  const on=skillActive();if(!on){if(SK.stage){SK.stage=0}SKG.visible=false;pathDots([],0);spinMeter(false);$('skillTag').classList.add('hidden');return}
- if(!SK.stage){SK.stage=1;SK.t=0}
- SK.t+=dt*DF().sp;const BSC=DF().b;
+ if(!SK.stage){SK.stage=1;SK.t=0;applyDiff()}
+ SK.t+=dt*SKSP;const BSC=SKBS;
  if(SK.stage===1){SK.yaw=Math.sin(SK.t*2*Math.PI/SK_AIM_P)*SK_YAW;SK.v=SWEET_V}
  else if(SK.stage===2){SK.v=SK_VMIN+(SK_VMAX-SK_VMIN)*(.5-.5*Math.cos(SK.t*2*Math.PI/SK_POW_P));SK.sp=0}
  else if(SK.stage===3){SK.sp=Math.sin(SK.t*2*Math.PI/SK_SP_P)}
  const W=(S&&S.wind)||{x:0,z:0},pth=[];if(SK.stage===3)landPt(SK.v,SK.yaw,SK.sp*SK_CURVE,W.x,W.z,pth);pathDots(pth,SK.stage===3?3:0);
- SKG.visible=true;aimBall.position.set(SK.yaw/SK_YAW*AIM_X,LIP_Y,LIP_Z);const ps=vToS(SK.v);powBall.position.set(RX,boardY(ps)+.087,boardZ(ps));powBall.visible=SK.stage>=2;
+ SKG.visible=true;aimBall.position.set(SK.yaw/SK_YAW*AIM_X,LIP_Y,LIP_Z);const ps=vToS(SK.v);powBall.position.copy(TRK0).lerp(TRK1,Math.max(0,Math.min(1,ps/BL)));powBall.position.y+=.067;powBall.visible=SK.stage>=2;
  const gA=Math.abs(SK.yaw)<.012*BSC,gP=Math.abs(SK.v-SWEET_V)<.08*BSC;aimBall.material.color.set(gA?'#7dff6a':'#ffd34d');aimBall.material.emissive.set(gA?'#2fd01a':'#ffb400');
  powBall.material.color.set(gP?'#7dff6a':'#ffd34d');powBall.material.emissive.set(gP?'#2fd01a':'#ffb400');const pul=1+.1*Math.sin(tAll*10);(SK.stage===1?aimBall:SK.stage===2?powBall:null)?.scale.setScalar(pul*BSC);if(SK.stage!==1)aimBall.scale.setScalar(BSC);if(SK.stage!==2)powBall.scale.setScalar(BSC);
  band.scale.x=1+.15*Math.sin(tAll*6);
  const tg=$('skillTag');tg.classList.remove('hidden');tg.innerHTML='<span class="'+(SK.stage===1?'on':'done')+'">1 · AIM</span><span class="'+(SK.stage===2?'on':SK.stage>2?'done':'')+'">2 · POWER</span><span class="'+(SK.stage===3?'on':'')+'">3 · SPIN</span>';
  $('hint').textContent=SK.stage===1?'👆 Tap to lock aim':SK.stage===2?'👆 Tap to lock power':'👆 Tap to lock spin & throw';spinMeter(SK.stage===3);const nd=$('spinM')&&$('spinM').querySelector('.needle');if(nd){nd.style.width=(10*BSC)+'px';nd.style.marginLeft=(-5*BSC)+'px'}}
 function skillTap(){if(!skillActive()||!SK.stage)return;sfx('tap');
- if(SK.stage===1){SK.stage=2;SK.t=0;return}if(SK.stage===2){SK.stage=3;SK.t=0;return}
+ if(SK.stage===1){SK.stage=2;SK.t=0;applyDiff();return}if(SK.stage===2){SK.stage=3;SK.t=0;return}
  const params={v:+SK.v.toFixed(3),yaw:+SK.yaw.toFixed(4),curve:+(SK.sp*SK_CURVE).toFixed(3),spin:+(6+SK.sp*6).toFixed(2),m:'s'};SK.stage=0;SKG.visible=false;pathDots([],0);spinMeter(false);$('skillTag').classList.add('hidden');SK.last=params;doThrow(params)}
 // ---------------- swipe input ----------------
 let sw=null;
@@ -2546,7 +2549,7 @@ document.querySelectorAll('.car .arw').forEach(a=>a.onclick=()=>{const t=a.paren
 let P2=sget('chP2')||'';
 function renderP2(){const r=$('p2Roster');r.innerHTML=cardsHTML(famNames().filter(n=>n!==nk(myName())),[P2])}
 $('p2Roster').onclick=e=>{const c=e.target.closest('.card');if(!c)return;P2=P2===c.dataset.n?'':c.dataset.n;sset('chP2',P2);sfx('tap');renderP2()};
-function startPP(a,b,tm){MODE='pp';S=newGame([a,b]);if(tm)S.tm=tm;ME=0;showBags([]);enterGame();liveWatch();livePush(S)}
+function startPP(a,b,tm){applyDiff();MODE='pp';S=newGame([a,b]);if(tm)S.tm=tm;ME=0;showBags([]);enterGame();liveWatch();livePush(S)}
 $('bPP').onclick=()=>{sfx('tap');sset('chName',myName());renderP2();$('ovPick').classList.remove('hidden')};
 $('bPick').onclick=()=>{sfx('tap');$('ovPick').classList.add('hidden');const b=P2&&P2!==nk(myName())?P2:'Player 2';startPP(myName(),b)};
 $('bPickX').onclick=()=>{sfx('tap');$('ovPick').classList.add('hidden')};
@@ -2718,6 +2721,6 @@ showBags(DEMO);CAM.pos.copy(CAM_TITLE.pos);camT.pos.copy(CAM_TITLE.pos);
 requestAnimationFrame(frame);
 if(Q.get('nosplash')==='1'){/* no splash in this game; flag accepted for test parity */}
 // test hooks
-window.CH={get wind(){return S&&S.wind},lanes:()=>LANES.map(L=>({mid:L.mid,vis:L.g.visible,bags:L.bags.filter(m=>m.visible).length,anim:!!L.anim})),get scene(){return SCENE},setCam:(p,l,f)=>{titleMode=false;CAMLOCK=1;camT.pos.set(...p);camT.look.set(...l);CAM.pos.set(...p);CAM.look.set(...l);if(f){camera.fov=f;camera.updateProjectionMatrix()}},award:(n,id)=>award(n,id),get BS(){return BS},get TOURS(){return TOURS},boardRows:()=>boardRows(),get skill(){return {aimBall:SKG.visible?aimBall.position.toArray():null,powBall:SKG.visible&&powBall.visible?powBall.position.toArray():null,sweetS:HOLE_S,powS:vToS(SK.v),sp:SK.sp,stage:SK.stage,yaw:SK.yaw,v:SK.v,last:SK.last,sweet:SWEET_V,mode:THROWMODE,diff:DIFF,ballScale:DF().b,speed:DF().sp}},skillTap:()=>skillTap(),setDiff:d=>{DIFF=d;sset('chDiff',d);paintDiff()},landPt,dbg:()=>({cam:camera.position.toArray(),look:CAM.look.toArray(),fov:camera.fov,asp:camera.aspect,title:titleMode,w:renderer.domElement.width,h:renderer.domElement.height,hidden:document.hidden,vis:document.visibilityState}),get qName(){return JSON.stringify(QUAL[qLevel])},get S(){return S},get ME(){return ME},get anim(){return !!anim},throwWith:p=>doThrow(p),simulate,roundPts,setQuality,get q(){return qLevel},myTurn};
+window.CH={get wind(){return S&&S.wind},lanes:()=>LANES.map(L=>({mid:L.mid,vis:L.g.visible,bags:L.bags.filter(m=>m.visible).length,anim:!!L.anim})),get scene(){return SCENE},setCam:(p,l,f)=>{titleMode=false;CAMLOCK=1;camT.pos.set(...p);camT.look.set(...l);CAM.pos.set(...p);CAM.look.set(...l);if(f){camera.fov=f;camera.updateProjectionMatrix()}},award:(n,id)=>award(n,id),get BS(){return BS},get TOURS(){return TOURS},boardRows:()=>boardRows(),get skill(){return {aimBall:SKG.visible?aimBall.position.toArray():null,powBall:SKG.visible&&powBall.visible?powBall.position.toArray():null,sweetS:HOLE_S,powS:vToS(SK.v),sp:SK.sp,stage:SK.stage,yaw:SK.yaw,v:SK.v,last:SK.last,sweet:SWEET_V,mode:THROWMODE,diff:DIFF,ballScale:DF().b,speed:DF().sp}},skillTap:()=>skillTap(),setDiff:d=>{DIFF=d;sset('chDiff',d);applyDiff();paintDiff()},get track(){return {a:TRK0.toArray(),b:TRK1.toArray(),front:[RX,boardY(0),boardZ(0)],back:[RX,boardY(BL),boardZ(BL)],len:BL,ballScales:[aimBall.scale.x,powBall.scale.x]}},landPt,dbg:()=>({cam:camera.position.toArray(),look:CAM.look.toArray(),fov:camera.fov,asp:camera.aspect,title:titleMode,w:renderer.domElement.width,h:renderer.domElement.height,hidden:document.hidden,vis:document.visibilityState}),get qName(){return JSON.stringify(QUAL[qLevel])},get S(){return S},get ME(){return ME},get anim(){return !!anim},throwWith:p=>doThrow(p),simulate,roundPts,setQuality,get q(){return qLevel},myTurn};
 })();
 </script></body></html>
