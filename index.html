@@ -162,37 +162,39 @@ table.lb tr.top0 td{background:linear-gradient(180deg,#fff6b0,#ffd34d)}table.lb 
 .bagi.lv6{background:radial-gradient(circle at 30% 30%,#fff 0 1px,transparent 2px),radial-gradient(circle at 70% 60%,#fff 0 1px,transparent 2px),radial-gradient(circle at 45% 80%,#d6c4ff 0 1px,transparent 2px),radial-gradient(ellipse at 60% 40%,#7b3fe0,#2a1466 55%,#0d0a2e);box-shadow:0 0 14px 4px #7b5cff}
 .bagi.lv5{background:linear-gradient(135deg,#ffd34d,#ff8a00,#ff4fd8,#4fc3ff,#ffd34d);box-shadow:0 0 14px 4px #ffd34d}
 
-/* Wide / landscape: compact top HUD so the backyard flag stays in view. Portrait phones are unchanged. */
-@media (orientation: landscape), (min-aspect-ratio: 13/10){
+/* Desktop / fine-pointer (Mac Safari & Chrome): thin compact score row, regardless of aspect. Portrait phones unchanged. */
+@media (hover: hover) and (pointer: fine), (min-width: 900px){
   #sb{top:calc(env(safe-area-inset-top) + 8px);left:calc(env(safe-area-inset-left) + 10px);right:calc(env(safe-area-inset-right) + 10px);gap:12px;justify-content:space-between;align-items:flex-start}
-  #hud .pl{flex:0 1 280px;max-width:24%;display:flex;flex-direction:row;flex-wrap:nowrap;align-items:center;gap:8px;padding:3px 10px 4px;border-width:2px;border-radius:14px;box-shadow:0 3px 0 var(--brown),0 6px 12px rgba(30,30,60,.3),inset 0 -3px 6px rgba(0,0,0,.2)}
+  #hud .pl{flex:0 1 260px;max-width:22%;display:flex;flex-direction:row;flex-wrap:nowrap;align-items:center;gap:6px;padding:2px 8px 2px;border-width:2px;border-radius:12px;box-shadow:0 3px 0 var(--brown),0 5px 10px rgba(30,30,60,.3),inset 0 -3px 6px rgba(0,0,0,.2)}
   #hud .pl.on{transform:scale(1.02)}
-  #hud .pl::after{height:55%;border-radius:10px 10px 40% 40%}
-  #hud .pl .nm{font-size:13px;gap:5px;min-width:0;flex:1 1 auto}
-  #hud .pl .nm .dot{width:11px;height:11px}
-  #hud .pl .nm .av.sm{width:18px;height:18px}
-  #hud .pl .sc{font-size:24px;line-height:1;flex:none}
-  #hud .pl .bags{margin-top:0;gap:3px;flex:none}
-  #hud .pl .bags i{width:10px;height:10px;border-radius:3px}
-  #rnd{top:calc(env(safe-area-inset-top) + 8px);left:24%;right:24%;font-size:13px;line-height:1.2}
-  #turn{top:calc(env(safe-area-inset-top) + 26px);font-size:20px;-webkit-text-stroke-width:1.4px;text-shadow:0 2px 0 var(--brown),0 4px 8px rgba(0,0,0,.2)}
-  #wind{top:calc(env(safe-area-inset-top) + 56px);right:calc(env(safe-area-inset-right) + 10px);width:86px;padding:4px 4px 5px;border-width:2px;border-radius:14px;box-shadow:0 3px 0 var(--brown),0 6px 10px rgba(0,0,0,.22)}
-  #wind .tmp{font-size:16px}
-  #wind .dial{width:28px;height:28px;flex:0 0 28px}
-  #wind .dial i::after{left:-5px;border-width:5px;border-bottom-width:8px}
-  #wind b{font-size:12px;margin-top:0}
-  #wind small{font-size:9px}
-}
-/* Tighter row on short phone landscape screens */
-@media (orientation: landscape) and (max-height: 520px){
-  #sb{top:calc(env(safe-area-inset-top) + 6px);left:calc(env(safe-area-inset-left) + 8px);right:calc(env(safe-area-inset-right) + 8px);gap:10px}
-  #hud .pl{flex-basis:220px;max-width:32%;gap:6px;padding:2px 8px 3px;border-radius:12px}
-  #hud .pl .nm{font-size:11px;gap:4px}
+  #hud .pl::after{height:55%;border-radius:8px 8px 40% 40%}
+  #hud .pl .nm{font-size:12px;gap:4px;min-width:0;flex:1 1 auto}
   #hud .pl .nm .dot{width:10px;height:10px}
   #hud .pl .nm .av.sm{width:16px;height:16px}
-  #hud .pl .sc{font-size:20px}
-  #hud .pl .bags{gap:2px}
-  #hud .pl .bags i{width:9px;height:9px}
+  #hud .pl .sc{font-size:20px;line-height:1;flex:none}
+  #hud .pl .bags{margin-top:0;gap:2px;flex:none}
+  #hud .pl .bags i{width:9px;height:9px;border-radius:3px}
+  #rnd{top:calc(env(safe-area-inset-top) + 8px);left:24%;right:24%;font-size:12px;line-height:1.2}
+  #turn{top:calc(env(safe-area-inset-top) + 24px);font-size:18px;-webkit-text-stroke-width:1.2px;text-shadow:0 2px 0 var(--brown),0 4px 8px rgba(0,0,0,.2)}
+  #wind{top:calc(env(safe-area-inset-top) + 46px);right:calc(env(safe-area-inset-right) + 10px);width:80px;padding:3px 4px 4px;border-width:2px;border-radius:12px;box-shadow:0 3px 0 var(--brown),0 6px 10px rgba(0,0,0,.22)}
+  #wind .tmp{font-size:15px}
+  #wind .dial{width:26px;height:26px;flex:0 0 26px}
+  #wind .dial i::after{left:-5px;border-width:5px;border-bottom-width:8px}
+  #wind b{font-size:12px;margin-top:0}
+  #wind small{font-size:8px}
+}
+/* Tighter row on short phone landscape screens (includes row layout; this query no longer relies on the desktop one). */
+@media (orientation: landscape) and (max-height: 520px){
+  #sb{top:calc(env(safe-area-inset-top) + 6px);left:calc(env(safe-area-inset-left) + 8px);right:calc(env(safe-area-inset-right) + 8px);gap:10px;justify-content:space-between;align-items:flex-start}
+  #hud .pl{flex:0 1 220px;max-width:32%;display:flex;flex-direction:row;flex-wrap:nowrap;align-items:center;gap:6px;padding:2px 8px 3px;border-width:2px;border-radius:12px;box-shadow:0 3px 0 var(--brown),0 5px 10px rgba(30,30,60,.3),inset 0 -3px 6px rgba(0,0,0,.2)}
+  #hud .pl.on{transform:scale(1.02)}
+  #hud .pl::after{height:55%;border-radius:8px 8px 40% 40%}
+  #hud .pl .nm{font-size:11px;gap:4px;min-width:0;flex:1 1 auto}
+  #hud .pl .nm .dot{width:10px;height:10px}
+  #hud .pl .nm .av.sm{width:16px;height:16px}
+  #hud .pl .sc{font-size:20px;line-height:1;flex:none}
+  #hud .pl .bags{margin-top:0;gap:2px;flex:none}
+  #hud .pl .bags i{width:9px;height:9px;border-radius:3px}
   #rnd{top:calc(env(safe-area-inset-top) + 7px);left:26%;right:26%;font-size:11px}
   #turn{top:calc(env(safe-area-inset-top) + 22px);font-size:16px;-webkit-text-stroke-width:1.2px}
   #wind{top:calc(env(safe-area-inset-top) + 48px);right:calc(env(safe-area-inset-right) + 8px);width:78px;padding:3px 3px 4px;border-radius:12px}
