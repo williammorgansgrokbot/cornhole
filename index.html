@@ -2412,19 +2412,19 @@ function setScene(k){if(k!==SCENE){SCENE=k;YARD_OBJ.forEach(o=>o.visible=k==='ya
 
 setScene('drive');
 // ---------------- live weather props (flag, tufts, particles; shared across scenes) ----------------
-function flagTex(){const c=document.createElement('canvas');c.width=256;c.height=160;const g=c.getContext('2d');
- g.fillStyle='#1f3f8f';g.fillRect(0,0,256,160);
- g.fillStyle='#ffd34d';g.fillRect(0,0,256,22);g.fillRect(0,138,256,22);
- g.fillStyle='#fffef6';g.beginPath();const cx=80,cy=80;for(let i=0;i<5;i++){const a=-Math.PI/2+i*2*Math.PI/5,b=a+Math.PI/5;
-  g.lineTo(cx+Math.cos(a)*36,cy+Math.sin(a)*36);g.lineTo(cx+Math.cos(b)*14,cy+Math.sin(b)*14)}g.closePath();g.fill();
+function flagTex(){const c=document.createElement('canvas');c.width=1800;c.height=1200;const g=c.getContext('2d');
+ const W=c.width,H=c.height,cx=W/5+H/3,cy=H/2,rO=H/3,rI=H/6,open=2*Math.asin(3/8);
+ g.fillStyle='#002868';g.fillRect(0,0,W,H);g.fillStyle='#fff';g.fillRect(0,H/3,W,H/3);
+ g.fillStyle='#FFD700';g.beginPath();g.arc(cx,cy,rI,0,Math.PI*2);g.fill();
+ g.fillStyle='#BF0A30';g.beginPath();g.arc(cx,cy,rO,open/2,-open/2,false);g.arc(cx,cy,rI,-open/2,open/2,true);g.closePath();g.fill();
  const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=8;return t}
 const FLAG=new THREE.Group();
 {const pole=new THREE.Mesh(new THREE.CylinderGeometry(.022,.03,2.35,10),gloss('#e8e0d0',{roughness:.35,metalness:.35}));pole.position.y=1.17;pole.castShadow=true;FLAG.add(pole);
  const cap=new THREE.Mesh(new THREE.SphereGeometry(.05,12,10),gloss('#ffd34d',{roughness:.25,clearcoat:.8}));cap.position.y=2.36;FLAG.add(cap);
  const base=new THREE.Mesh(rbox(.16,.06,.16,.03,2),gloss('#6b4a2e',{roughness:.5}));base.position.y=.03;FLAG.add(base)}
-const clothG=new THREE.PlaneGeometry(.9,.5,8,5);
+const clothG=new THREE.PlaneGeometry(.9,.6,10,6);
 const cloth=new THREE.Mesh(clothG,new THREE.MeshPhysicalMaterial({map:flagTex(),side:THREE.DoubleSide,roughness:.45,clearcoat:.25,envMapIntensity:.4}));
-cloth.position.set(.46,2.05,0);cloth.castShadow=true;FLAG.add(cloth);
+cloth.position.set(.46,2.00,0);cloth.castShadow=true;FLAG.add(cloth);
 const CLOTH0=Float32Array.from(clothG.attributes.position.array);
 FLAG.position.set(1.06,0,-8.95);scene.add(FLAG);blob(1.06,-8.95,.45,.45,.5);
 function addTufts(into,col,pts){pts.forEach(([x,z,s])=>{const g=new THREE.Group();
